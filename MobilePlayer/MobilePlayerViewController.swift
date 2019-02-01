@@ -74,7 +74,7 @@ open class MobilePlayerViewController: MPMoviePlayerViewController {
   fileprivate var wasPlayingBeforeSeek = false
   private var playbackInterfaceUpdateTimer: Timer?
   private var hideControlsTimer: Timer?
-  private var orignalOrientationIsPortrait:Bool!
+  private var isPortrait:Bool!
   // MARK: Initialization
 
   /// Initializes a player with content given by `contentURL`. If provided, the overlay view controllers used to
@@ -98,7 +98,7 @@ open class MobilePlayerViewController: MPMoviePlayerViewController {
     self.postrollViewController = postrollViewController
     super.init(contentURL: contentURL)
     initializeMobilePlayerViewController()
-    self.orignalOrientationIsPortrait = self.isScreenPortrait()
+    self.isPortrait = true
   }
 
   /// Returns a player initialized from data in a given unarchiver. `globalConfig` is used for configuration in this
@@ -128,12 +128,7 @@ open class MobilePlayerViewController: MPMoviePlayerViewController {
       showOverlayViewController(WatermarkViewController(config: watermarkConfig))
     }
   }
-  /// detect screen is Portrait
-  public func isScreenPortrait() -> Bool{
-    return UIDevice.current.orientation.isValidInterfaceOrientation
-            ? UIDevice.current.orientation.isPortrait
-            : UIApplication.shared.statusBarOrientation.isPortrait
-  }
+
 
 
   private func initializeNotificationObservers() {
@@ -180,12 +175,7 @@ open class MobilePlayerViewController: MPMoviePlayerViewController {
               guard let slf = self else {
                 return
               }
-              // set back original screen orientation
-              if(slf.orignalOrientationIsPortrait){
-                UIDevice.current.setValue(UIInterfaceOrientation.portrait.rawValue, forKey: "orientation")
-              }else{
-                UIDevice.current.setValue(UIInterfaceOrientation.landscapeRight.rawValue, forKey: "orientation")
-              }
+        
               if let navigationController = slf.navigationController {
                 navigationController.popViewController(animated: true)
               } else if let presentingController = slf.presentingViewController {
@@ -214,18 +204,29 @@ open class MobilePlayerViewController: MPMoviePlayerViewController {
                 guard let slf = self else {
                   return
                 }
-                let isPortrait=slf.isScreenPortrait()
-                print("isPortrait===>"+String(isPortrait))
-                if isPortrait {
-                  UIDevice.current.setValue(UIInterfaceOrientation.landscapeRight.rawValue, forKey: "orientation")
-                  UIApplication.shared.setStatusBarHidden(false, with: .fade)
-                  UIApplication.shared.statusBarOrientation = .landscapeRight
-                } else {
-                  UIDevice.current.setValue(UIInterfaceOrientation.portrait.rawValue, forKey: "orientation")
-                  UIApplication.shared.setStatusBarHidden(false, with: .fade)
-                  UIApplication.shared.statusBarOrientation = .portrait
-
+         
+                let height = UIScreen.main.bounds.width
+                let width = UIScreen.main.bounds.height
+           
+                let superView=slf.view!
+                
+                if(slf.isPortrait){
+                    let frame = CGRect(x: (height - width)/2, y: (width - height)/2, width: width, height: height)
+                    UIView.animate(withDuration: 0.3, animations: {
+                        superView.frame = frame
+                        superView.transform = CGAffineTransform(rotationAngle: (CGFloat)(Double.pi/2))
+                    })
+                    slf.isPortrait=false
+                }else{
+                    let frame = CGRect(x: 0, y: 0, width: height, height: width)
+                    //横屏状态 切换为竖屏
+                    UIView.animate(withDuration: 0.3, animations: {
+                        superView.transform = CGAffineTransform.identity
+                        superView.frame = frame
+                    })
+                    slf.isPortrait=true
                 }
+
               },forControlEvents: .touchUpInside)
     }
 
