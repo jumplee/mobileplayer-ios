@@ -116,8 +116,7 @@ final class MobilePlayerControlsView: UIView {
         var iphoneXHeightFix:CGFloat=0
         if(boundWidth/boundHeight>2.16 ){
             iphoneXWidthFix=80
-            iphoneXHeightFix=44
-            
+            iphoneXHeightFix=0
         }
         topBar.sizeToFit()
         topBar.frame = CGRect(
